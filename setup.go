@@ -20,7 +20,7 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	p := NeoteqTS4via6{}
+	p := &NeoteqTS4via6{}
 	for c.Next() {
 		for c.NextBlock() {
 			switch c.Val() {
@@ -31,10 +31,13 @@ func setup(c *caddy.Controller) error {
 			}
 		}
 	}
+	c.OnStartup(func() error {
+		return nil
+	})
 	return nil
 }
 
-func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (p *NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	qName := r.Question[0].Name
 	qType := r.Question[0].Qtype
 
@@ -62,7 +65,7 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	msg.Rcode = dns.RcodeSuccess
 	w.WriteMsg(msg)
 
-	// Fallthrough aktivieren, wenn gesetzt
+	// Falls keine Antwort gegeben wurde, fallthrough verwenden
 	if p.Fallthrough {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 	}
@@ -70,6 +73,6 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	return dns.RcodeSuccess, nil
 }
 
-func (p NeoteqTS4via6) Name() string {
+func (p *NeoteqTS4via6) Name() string {
 	return "neoteqts4via6"
 }
