@@ -63,6 +63,7 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		msg := new(dns.Msg)
 		msg.SetReply(r)
 		msg.Authoritative = true
+		msg.Rcode = dns.RcodeSuccess
 		// Keine Antwort setzen, was zu "No Answer" führt
 		w.WriteMsg(msg)
 		return dns.RcodeSuccess, nil
