@@ -2,18 +2,17 @@ package neoteqts4via6
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"strings"
 
 	"github.com/coredns/caddy"
-	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
 	"github.com/miekg/dns"
 )
 
 type NeoteqTS4via6 struct {
-	Next plugin.Handler
+	Next        plugin.Handler
+	Fallthrough bool
 }
 
 func init() {
@@ -21,20 +20,17 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	p := &NeoteqTS4via6{}
-
-	c.Next() // Bewegt den Parser weiter (Pflicht in CoreDNS)
-
-	c.OnStartup(func() error {
-		fmt.Println("NeoteqTS4via6 Plugin geladen!")
-		return nil
-	})
-
-	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		p.Next = next
-		return p
-	})
-
+	p := NeoteqTS4via6{}
+	for c.Next() {
+		for c.NextBlock() {
+			switch c.Val() {
+			case "fallthrough":
+				p.Fallthrough = true
+			default:
+				return c.Errf("unknown property '%s'", c.Val())
+			}
+		}
+	}
 	return nil
 }
 
@@ -63,13 +59,16 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		msg := new(dns.Msg)
 		msg.SetReply(r)
 		msg.Authoritative = true
-		msg.Rcode = dns.RcodeSuccess
-		// Keine Antwort setzen, was zu "No Answer" führt
+		msg.Rcode = dns.RcodeSuccess // Explizit NOERROR setzen
 		w.WriteMsg(msg)
 		return dns.RcodeSuccess, nil
 	}
 
-	return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+	if p.Fallthrough {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+	}
+
+	return dns.RcodeNameError, nil
 }
 
 func (p NeoteqTS4via6) Name() string {
