@@ -59,6 +59,15 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		}
 	}
 
+	if qType == dns.TypeA {
+		msg := new(dns.Msg)
+		msg.SetReply(r)
+		msg.Authoritative = true
+		// Keine Antwort setzen, was zu "No Answer" führt
+		w.WriteMsg(msg)
+		return dns.RcodeSuccess, nil
+	}
+
 	return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 }
 
