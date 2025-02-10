@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/coredns/caddy"
@@ -11,28 +12,23 @@ import (
 	"github.com/miekg/dns"
 )
 
-// NeoteqTS4via6 ist das CoreDNS-Plugin
 type NeoteqTS4via6 struct {
 	Next plugin.Handler
 }
 
-// init registriert das Plugin bei CoreDNS
 func init() {
 	plugin.Register("neoteqts4via6", setup)
 }
 
-// setup konfiguriert das Plugin in CoreDNS
 func setup(c *caddy.Controller) error {
 	p := NeoteqTS4via6{}
 	c.OnStartup(func() error {
 		fmt.Println("NeoteqTS4via6 Plugin geladen!")
 		return nil
 	})
-	plugin.NextOrFailure(p.Name(), p.Next, context.Background(), nil, nil)
 	return nil
 }
 
-// ServeDNS verarbeitet DNS-Anfragen für AAAA-Records
 func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	qName := r.Question[0].Name
 	qType := r.Question[0].Qtype
@@ -57,7 +53,39 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 }
 
-// Name gibt den Namen des Plugins zurück
 func (p NeoteqTS4via6) Name() string {
 	return "neoteqts4via6"
+}
+
+func ResolveIPv6(query string) (string, error) {
+	parts := strings.Split(query, ".")
+	if len(parts) < 3 {
+		return "", fmt.Errorf("ungültige Anfrage")
+	}
+
+	ipv4Str := strings.ReplaceAll(parts[0], "-", ".")
+	idStr := strings.TrimPrefix(parts[1], "via")
+
+	ipv4Parts := strings.Split(ipv4Str, ".")
+	if len(ipv4Parts) != 4 {
+		return "", fmt.Errorf("ungültige IPv4-Adresse")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return "", fmt.Errorf("ungültige ID")
+	}
+
+	ipv4Bytes := make([]int, 4)
+	for i := 0; i < 4; i++ {
+		ipv4Bytes[i], err = strconv.Atoi(ipv4Parts[i])
+		if err != nil || ipv4Bytes[i] < 0 || ipv4Bytes[i] > 255 {
+			return "", fmt.Errorf("ungültige IPv4-Adresse")
+		}
+	}
+
+	ipv6 := fmt.Sprintf("fd7a:115c:a1e0:b1a:0:%x:%02x%02x:%02x%02x",
+		id, ipv4Bytes[0], ipv4Bytes[1], ipv4Bytes[2], ipv4Bytes[3])
+
+	return ipv6, nil
 }
