@@ -25,7 +25,7 @@ func init() {
 
 func setup(c *caddy.Controller) error {
 	p := &NeoteqTS4via6{
-		TTL: 60, // Default TTL
+		TTL: 60, // Def TTL
 	}
 
 	for c.Next() {
