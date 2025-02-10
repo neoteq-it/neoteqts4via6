@@ -55,20 +55,19 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		}
 	}
 
-	if qType == dns.TypeA {
-		msg := new(dns.Msg)
-		msg.SetReply(r)
-		msg.Authoritative = true
-		msg.Rcode = dns.RcodeSuccess // Explizit NOERROR setzen
-		w.WriteMsg(msg)
-		return dns.RcodeSuccess, nil
-	}
+	// Für alle anderen Record-Typen "No Answer" zurückgeben
+	msg := new(dns.Msg)
+	msg.SetReply(r)
+	msg.Authoritative = true
+	msg.Rcode = dns.RcodeSuccess
+	w.WriteMsg(msg)
 
+	// Fallthrough aktivieren, wenn gesetzt
 	if p.Fallthrough {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 	}
 
-	return dns.RcodeNameError, nil
+	return dns.RcodeSuccess, nil
 }
 
 func (p NeoteqTS4via6) Name() string {
