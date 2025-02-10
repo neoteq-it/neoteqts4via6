@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/coredns/caddy"
+	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
 	"github.com/miekg/dns"
 )
@@ -21,11 +22,20 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	p := NeoteqTS4via6{}
+	p := &NeoteqTS4via6{}
+
+	c.Next() // Bewegt den Parser weiter (Pflicht in CoreDNS)
+
 	c.OnStartup(func() error {
 		fmt.Println("NeoteqTS4via6 Plugin geladen!")
 		return nil
 	})
+
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
+		p.Next = next
+		return p
+	})
+
 	return nil
 }
 
