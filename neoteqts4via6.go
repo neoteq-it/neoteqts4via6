@@ -25,6 +25,14 @@ func ResolveIPv6(query string) (string, error) {
 		return "", fmt.Errorf("ungültige ID")
 	}
 
+	if id < 0x0000 {
+		return "", fmt.Errorf("ID darf nicht kleiner als 0x0000 (0) sein")
+	}
+
+	if id > 0xFFFF {
+		return "", fmt.Errorf("ID darf nicht größer als 0xFFFF (65535) sein")
+	}
+
 	ipv4Bytes := make([]int, 4)
 	for i := 0; i < 4; i++ {
 		ipv4Bytes[i], err = strconv.Atoi(ipv4Parts[i])
