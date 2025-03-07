@@ -74,7 +74,7 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 			msg.Authoritative = true
 
 			rr := &dns.AAAA{
-				Hdr:  dns.RR_Header{Name: qName, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 60},
+				Hdr:  dns.RR_Header{Name: qName, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: p.TTL},
 				AAAA: net.ParseIP(ipv6),
 			}
 			msg.Answer = append(msg.Answer, rr)
