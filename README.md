@@ -22,7 +22,7 @@ Dieses Plugin stellt genau diese Funktionalität über DNS bereit.
 Das Plugin verarbeitet DNS-Anfragen mit folgendem Format: {ip}.via{id}.domain.tld.
 
 ### Beispiel:
-192-168-1-100-via42.ts.net → wird aufgelöst zu: d7a:115c:a1e0:0b1a:0:2a:c0a8:0164
+192-168-1-100-via42.ts.net → wird aufgelöst zu: fd7a:115c:a1e0:0b1a:0:2a:c0a8:0164
 
 ### Interpretation:
 
