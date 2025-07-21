@@ -13,7 +13,7 @@ func ResolveIPv6(query string) (string, error) {
 	}
 
 	ipv4Str := strings.ReplaceAll(parts[0], "-", ".")
-	idStr := strings.TrimPrefix(parts[1], "via")
+	idStr := strings.TrimPrefix(strings.ToLower(parts[1]), "via")
 
 	ipv4Parts := strings.Split(ipv4Str, ".")
 	if len(ipv4Parts) != 4 {
