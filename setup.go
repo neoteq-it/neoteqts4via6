@@ -84,15 +84,6 @@ func (p NeoteqTS4via6) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		// Fallthrough, wenn keine IPv6-Adresse gefunden wurde
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 
-	case dns.TypeA:
-		// Leere Antwort für A-Anfragen, dann Fallthrough
-		msg := new(dns.Msg)
-		msg.SetReply(r)
-		msg.Authoritative = true
-		msg.Rcode = dns.RcodeSuccess
-		w.WriteMsg(msg)
-		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
-
 	default:
 		// Für alle anderen Anfragen direkt Fallthrough
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
